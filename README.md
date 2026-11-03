@@ -32,6 +32,11 @@ npm run build:web
 
 ## Veri ve kapsam
 
+- **Hareket ekleme:** kas grupları eşit boyutlu 4 sütun × 2 satırdır. “Dropset olarak ayarla” seçilirse her work-set için 2–30 drop-set seçilir. Kardiyo hareketleri dakika ile kaydedildiği için dropset seçeneği kardiyoda kapalıdır.
+- **Program oluşturma:** isim örneği “Push, Pull, Leg”. Kardiyoda 1–300 dakika hedefi, diğer hareketlerde 1–30 set/work-set belirlenir. Dropset hareketlerinde her work-set'in drop-setleri ayrı listelenir; isteğe bağlı hedef kilo/tekrar girilebilir.
+- **Antrenman:** kardiyoda gerçekleşen dakika, normal sette kilo/tekrar, dropsette her drop-set için ayrı kilo/tekrar girilir ve ayrı tamamlanır. Program hedefleri antrenmanda değiştirilebilir. Örneğin 3 work-set × 2 drop-set, 6 bağımsız kilo/tekrar kaydıdır.
+- **Geçmiş ve grafik:** kardiyo son 7 antrenmanın gerçekleşen süresini dakika üzerinden gösterir. Ağırlık hareketleri en yüksek/en düşük kilo çizgilerini korur. Eski kayıtlar yeniden yorumlanmaz; kilo/tekrar olarak girilmiş eski kardiyo kayıtlarından süre türetilmez. Antrenman türü, work-set/drop-set numaraları ve süre hedefi kayıt anında sabitlenir.
+
 - **Geçmiş:** programa göre çoklu filtreleme yapılır. Silinmiş programların geçmiş kayıtları da filtrelenebilir. **Temizle ×** tüm kayıtları yeniden gösterir.
 - Filtrelerde seçim tik yerine arka plan rengiyle gösterilir; seçim ve temizleme panel boyutunu değiştirmez.
 - Geçmiş kayıtları kapalı başlar; başlıkta gün adı içeren tarih, program adı ve tamamlanan set yüzdesi gösterilir. Kartın geneline dokunarak set detayları açılıp kapatılabilir; büyük ok ilerleme çubuğunun yanındadır. Sil ve hareket geçmişi bağlantıları kendi işlemlerini yapar. Yüzde, kaydın kendi planlanmış set sayısından hesaplanır.
@@ -64,7 +69,7 @@ npm run build:web
 
 ## Doğrulama
 
-- `npm test`: 23 test (son 7 antrenman grafiği ve dinamik kilo ölçeği dahil); kayıt koruma, sekiz kas grubu, filtreler, Türkçe arama, tek antrenman silme, tarih ve gün adı biçimi, set ilerleme yüzdesi, takvim aralığı/toplam tutarlılığı, sürükleme mesafesi ve güncel seri dahil.
+- `npm test`: 29 test; karma kardiyo/dropset programı, bağımsız drop-set hedefleri, süre doğrulama, kayıt/yeniden yükleme/geçmiş/grafik akışı ve eski kayıt uyumluluğu dahil.
 - `expo export --platform all`: Android ve iOS Hermes paketleri ile web çıktısı üretildi. Bu işlem imzalı APK/IPA üretmez.
 - Expo'nun yerel bağımlılık haritasıyla sürüm uyumluluk kontrolü geçti.
 - Ortamdaki tarayıcı kontrol aracı başlatılamadığı için görsel/uçtan uca arayüz testi yapılamadı. Fiziksel cihaz üzerinde klavye, kalıcı kayıt ve uygulamayı kapatıp devam etme akışı ayrıca doğrulanmalıdır.

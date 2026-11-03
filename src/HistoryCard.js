@@ -1,21 +1,22 @@
 import React, {useState} from 'react';
 import {View, Text, Pressable, StyleSheet} from 'react-native';
-import {dateLabel,sessionProgress} from './format';
-import {completedCount} from './model';
+import {sessionDateLabel,sessionProgress} from './format';
+import {sessionSummary} from './training';
+import {RecordDetails} from './SessionExercise';
 
 export default function HistoryCard({session,onDelete,onExercise}) {
   const [expanded,setExpanded]=useState(false);
   const progress=sessionProgress(session);
-  return <Pressable style={s.card} accessibilityRole="button" accessibilityLabel={`${dateLabel(session.date)}, ${session.programName}, yüzde ${progress} tamamlandı`} accessibilityState={{expanded}} onPress={()=>setExpanded(value=>!value)}>
+  return <Pressable style={s.card} accessibilityRole="button" accessibilityLabel={`${sessionDateLabel(session)}, ${session.programName}, yüzde ${progress} tamamlandı`} accessibilityState={{expanded}} onPress={()=>setExpanded(value=>!value)}>
     <View style={s.header}>
       <View style={s.summary}>
-        <Text style={s.date}>{dateLabel(session.date)}</Text>
+        <Text style={s.date}>{sessionDateLabel(session)}</Text>
         <Text style={s.title}>{session.programName}</Text>
       </View>
       <Pressable accessibilityRole="button" accessibilityLabel={session.programName+' kaydını sil'} hitSlop={{top:5,bottom:5,left:5,right:5}} style={s.deleteButton} onPress={event=>{event.stopPropagation();onDelete();}}><Text style={s.deleteText}>Sil</Text></Pressable>
     </View>
     <View style={s.progressRow}><View style={s.progressInfo}><Text style={s.percentage}>%{progress} tamamlandı</Text><View style={s.track}><View style={[s.fill,{width:progress+'%'}]}/></View></View><View style={s.arrowArea}><View style={[s.arrow,{transform:[{rotate:expanded?'225deg':'45deg'}]}]}/></View></View>
-    {expanded&&<View style={s.details}><Text style={s.muted}>{completedCount(session)} set tamamlandı</Text>{session.exercises.map(exercise=><View key={exercise.exerciseId} style={s.exercise}><Pressable accessibilityRole="button" onPress={event=>{event.stopPropagation();onExercise(exercise.exerciseId);}}><Text style={s.accent}>{exercise.name} ↗</Text></Pressable>{exercise.sets.map((set,index)=>set.done&&<Text key={index} style={s.muted}>{index+1}. set <Text style={s.setText}>· {set.weight} kg × {set.reps} tekrar</Text></Text>)}</View>)}</View>}
+    {expanded&&<View style={s.details}><Text style={s.muted}>{sessionSummary(session)} tamamlandı</Text>{session.exercises.map(exercise=><View key={exercise.exerciseId} style={s.exercise}><Pressable accessibilityRole="button" onPress={event=>{event.stopPropagation();onExercise(exercise.exerciseId);}}><Text style={s.accent}>{exercise.name} ↗</Text></Pressable><RecordDetails exercise={exercise}/></View>)}</View>}
   </Pressable>;
 }
 const s=StyleSheet.create({

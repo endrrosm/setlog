@@ -1,18 +1,17 @@
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
+const {sessionExercise}=require('./training');
 const groups = ['Göğüs', 'Omuz', 'Triceps', 'Sırt', 'Biceps', 'Bacak', 'Karın', 'Kardiyo'];
 function initialState() {
   return { version: 1, exercises: [], programs: [], sessions: [], active: null };
 }
 function startSession(program, exercises, now = new Date().toISOString()) {
   return { id: uid(), programId: program.id, programName: program.name, date: now,
-    exercises: program.exercises.map(item => ({ exerciseId: item.exerciseId,
-      name: exercises.find(e => e.id === item.exerciseId)?.name || 'Hareket',
-      sets: Array.from({ length: item.sets }, () => ({ weight: '', reps: '', done: false })) })) };
+    exercises: program.exercises.map(item => sessionExercise(item,exercises.find(e=>e.id===item.exerciseId))) };
 }
-function validSet(set) {
+function validSet(set,kind='strength') {
   const weight = String(set.weight).trim().replace(',', '.');
   const reps = String(set.reps).trim();
-  return weight !== '' && Number.isFinite(Number(weight)) && Number(weight) >= 0 && /^\d+$/.test(reps) && Number(reps) > 0;
+  return (kind==='bodyweight' || (weight !== '' && Number.isFinite(Number(weight)) && Number(weight) >= 0)) && /^\d+$/.test(reps) && Number(reps) > 0;
 }
 function historyFor(sessions, exerciseId) {
   return sessions.filter(s => s.exercises.some(e => e.exerciseId === exerciseId && e.sets.some(t => t.done)))

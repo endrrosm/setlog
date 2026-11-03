@@ -1,8 +1,14 @@
 const {historyFor}=require('./model');
-function exerciseChartData(sessions,exerciseId){
+function exerciseChartData(sessions,exerciseId,metric='weight'){
  return historyFor(sessions,exerciseId).map(entry=>{
-  const weights=entry.exercise.sets.filter(set=>set.done).map(set=>String(set.weight).trim()).filter(Boolean).map(value=>Number(value.replace(',','.'))).filter(value=>Number.isFinite(value)&&value>=0);
-  return weights.length?{id:entry.id,date:entry.date,programName:entry.programName,weight:Math.max(...weights),minWeight:Math.min(...weights)}:null;
+  if(metric==='duration'){
+   if(entry.exercise.kind!=='cardio')return null;
+   const minutes=entry.exercise.sets.filter(set=>set.done).map(set=>Number(String(set.minutes??'').replace(',','.'))).filter(value=>Number.isFinite(value)&&value>0);
+   return minutes.length?{exercise:entry.exercise,id:entry.id,date:entry.date,programName:entry.programName,weight:minutes.reduce((sum,value)=>sum+value,0)}:null;
+  }
+  if(entry.exercise.kind==='cardio'||(entry.exercise.kind==='bodyweight')!==(metric==='reps'))return null;
+  const weights=entry.exercise.sets.filter(set=>set.done).map(set=>String(metric==='reps'?set.reps:set.weight).trim()).filter(Boolean).map(value=>Number(value.replace(',','.'))).filter(value=>Number.isFinite(value)&&value>=0);
+  return weights.length?{exercise:entry.exercise,id:entry.id,date:entry.date,programName:entry.programName,weight:Math.max(...weights),minWeight:Math.min(...weights)}:null;
  }).filter(Boolean).slice(0,7).reverse();
 }
 function weightScale(points){

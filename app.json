@@ -1,1 +1,25 @@
-{"expo":{"name":"Setlog","slug":"setlog","version":"1.0.0","orientation":"portrait","userInterfaceStyle":"dark","ios":{"supportsTablet":true,"bundleIdentifier":"com.setlog.fitness"},"android":{"package":"com.setlog.fitness"},"web":{"name":"Setlog","themeColor":"#111411"}}}
+{
+  "expo": {
+    "name": "Setlog",
+    "slug": "setlog",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.setlog.fitness"
+    },
+    "android": {
+      "package": "com.setlog.fitness"
+    },
+    "web": {
+      "name": "Setlog",
+      "themeColor": "#111411"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b9d95fc9-7d2a-49b0-8b72-47bfc83ad9f6"
+      }
+    }
+  }
+}

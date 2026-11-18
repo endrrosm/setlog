@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import IconButton from './IconButton';
 import {View, Text, Pressable, StyleSheet} from 'react-native';
 import {sessionDateLabel,sessionProgress} from './format';
 import {sessionSummary} from './training';
@@ -13,7 +14,7 @@ export default function HistoryCard({session,onDelete,onExercise}) {
         <Text style={s.date}>{sessionDateLabel(session)}</Text>
         <Text style={s.title}>{session.programName}</Text>
       </View>
-      <Pressable accessibilityRole="button" accessibilityLabel={session.programName+' kaydını sil'} hitSlop={{top:5,bottom:5,left:5,right:5}} style={s.deleteButton} onPress={event=>{event.stopPropagation();onDelete();}}><Text style={s.deleteText}>Sil</Text></Pressable>
+      <IconButton icon="trash" danger label={session.programName+' kaydını sil'} hint="Bu antrenman kaydını sil" onPress={onDelete}/>
     </View>
     <View style={s.progressRow}><View style={s.progressInfo}><Text style={s.percentage}>%{progress} tamamlandı</Text><View style={s.track}><View style={[s.fill,{width:progress+'%'}]}/></View></View><View style={s.arrowArea}><View style={[s.arrow,{transform:[{rotate:expanded?'225deg':'45deg'}]}]}/></View></View>
     {expanded&&<View style={s.details}><Text style={s.muted}>{sessionSummary(session)} tamamlandı</Text>{session.exercises.map(exercise=><View key={exercise.exerciseId} style={s.exercise}><Pressable accessibilityRole="button" onPress={event=>{event.stopPropagation();onExercise(exercise.exerciseId);}}><Text style={s.accent}>{exercise.name} ↗</Text></Pressable><RecordDetails exercise={exercise}/></View>)}</View>}
@@ -32,8 +33,6 @@ const s=StyleSheet.create({
   arrow:{width:16,height:16,borderBottomWidth:2.5,borderRightWidth:2.5,borderColor:'#b7d877'},
   track:{height:4,borderRadius:4,overflow:'hidden',backgroundColor:'#303b28'},
   fill:{height:4,backgroundColor:'#b7d877'},
-  deleteButton:{minHeight:44,minWidth:40,alignItems:'flex-end',justifyContent:'flex-start',paddingTop:3},
-  deleteText:{color:'#e3a092',fontSize:12},
   details:{gap:14,paddingTop:18},
   exercise:{borderTopWidth:1,borderColor:'#303a28',paddingTop:14,gap:8},
   muted:{color:'#94a08b',fontSize:13,lineHeight:20},

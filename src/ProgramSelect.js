@@ -7,10 +7,10 @@ export function DropdownHost({children,style}){
  const root=useRef(null),[menu,setMenu]=useState(null);
  const {width,height}=useWindowDimensions();
  const close=useCallback(()=>setMenu(null),[]);
- const show=useCallback((owner,trigger,options,value,onChange)=>{
+ const show=useCallback((owner,trigger,options,value,onChange,emptyText,closeLabel)=>{
   Keyboard.dismiss();
   root.current?.measureInWindow((rootX,rootY,rootWidth,rootHeight)=>{
-   trigger.current?.measureInWindow((x,y,w,h)=>setMenu({owner,options,value,onChange,left:x-rootX,top:y-rootY+h+6,width:w,maxHeight:Math.max(0,Math.min(320,rootHeight-(y-rootY+h+6)-8))}));
+   trigger.current?.measureInWindow((x,y,w,h)=>setMenu({owner,options,value,onChange,emptyText,closeLabel,left:x-rootX,top:y-rootY+h+6,width:w,maxHeight:Math.max(0,Math.min(320,rootHeight-(y-rootY+h+6)-8))}));
   });
  },[]);
  useEffect(close,[width,height,close]);
@@ -18,23 +18,25 @@ export function DropdownHost({children,style}){
  return <DropdownContext.Provider value={{menu,show,close}}><View ref={root} collapsable={false} style={style}>
   {children}
   {menu&&<View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-   <Pressable style={StyleSheet.absoluteFill} accessibilityRole="button" accessibilityLabel="Program menüsünü kapat" onPress={close}/>
+   <Pressable style={StyleSheet.absoluteFill} accessibilityRole="button" accessibilityLabel={menu.closeLabel} onPress={close}/>
    <View style={[s.menu,{left:menu.left,top:menu.top,width:menu.width,maxHeight:menu.maxHeight}]}>
     <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" contentContainerStyle={s.options}>
      {menu.options.map(program=>{const active=program.id===menu.value;return <Pressable key={program.id} accessibilityRole="radio" accessibilityState={{checked:active}} onPress={()=>{menu.onChange(program.id);close();}} style={[s.option,active&&s.activeOption]}><Text style={[s.name,active&&s.activeName]}>{program.name}</Text></Pressable>;})}
-     {!menu.options.length&&<Text style={s.empty}>Seçilebilir program yok. Programlar sekmesinden hareket içeren bir program oluştur.</Text>}
+     {!menu.options.length&&<Text style={s.empty}>{menu.emptyText}</Text>}
     </ScrollView>
    </View>
   </View>}
  </View></DropdownContext.Provider>;
 }
 export default function ProgramSelect({programs,value,onChange,label='Antrenman programı seç'}) {
+ return <DropdownSelect options={programs.filter(program=>program.exercises.length>0)} value={value} onChange={onChange} label={label} placeholder="Program seç" closeLabel="Program menüsünü kapat" emptyText="Seçilebilir program yok. Programlar sekmesinden hareket içeren bir program oluştur."/>;
+}
+export function DropdownSelect({options,value,onChange,label,placeholder='Seç',emptyText='Seçilebilir seçenek yok.',closeLabel='Menüyü kapat'}) {
  const trigger=useRef(null),owner=useRef({}).current;
  const {menu,show,close}=useContext(DropdownContext);
- const options=programs.filter(program=>program.exercises.length>0);
  const selected=options.find(program=>program.id===value),expanded=menu?.owner===owner;
  useEffect(()=>()=>close(),[close]);
- return <View ref={trigger} collapsable={false}><Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{expanded:!!expanded}} onPress={()=>expanded?close():show(owner,trigger,options,value,onChange)} style={[s.trigger,selected&&s.selectedTrigger]}><Text style={s.name}>{selected?.name||'Program seç'}</Text><Text style={s.chevron}>{expanded?'⌃':'⌄'}</Text></Pressable></View>;
+ return <View ref={trigger} collapsable={false}><Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{expanded:!!expanded}} onPress={()=>expanded?close():show(owner,trigger,options,value,onChange,emptyText,closeLabel)} style={[s.trigger,selected&&s.selectedTrigger]}><Text style={s.name}>{selected?.name||placeholder}</Text><Text style={s.chevron}>{expanded?'⌃':'⌄'}</Text></Pressable></View>;
 }
 const s=StyleSheet.create({
  trigger:{flexDirection:'row',alignItems:'center',gap:12,minHeight:58,padding:16,borderWidth:1,borderColor:'#36422f',borderRadius:14,backgroundColor:'#1d241a'},

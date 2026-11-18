@@ -9,13 +9,15 @@ import { programGroups, filterPrograms, filterExercises, historyProgramOptions, 
 
 import Calendar from './src/Calendar';
 import TabBar from './src/TabBar';
+import Nutrition from './src/NutritionScreen';
+import SectionMenu from './src/SectionMenu';
 import WeeklyActivity from './src/WeeklyActivity';
 import ProgramSelect, {DropdownHost} from './src/ProgramSelect';
 import HistoryCard from './src/HistoryCard';
 import ExerciseChart from './src/ExerciseChart';
 import {ExerciseOptions,ProgramItemControls} from './src/TrainingControls';
 import SessionExercise,{RecordDetails} from './src/SessionExercise';
-import {isCardio,itemLabel,programSummary,sessionSummary} from './src/training';
+import {addExtraSet,replaceSessionExercise,isCardio,itemLabel,programSummary,sessionSummary} from './src/training';
 import {sessionDateLabel,dateLabel} from './src/format';
 import {localDateKey, historicalDate, deleteHistorySession, sortedSessions} from './src/history';
 
@@ -26,6 +28,7 @@ const Field = ({label, ...props}) => <View style={{gap:8}}>{label && <Text style
 
 export default function App(){ return <SafeAreaProvider><FitnessApp/></SafeAreaProvider>; }
 function FitnessApp(){
+ const [section,setSection]=useState('sport');
  const [data,setData]=useState(initialState), [ready,setReady]=useState(false), [storageError,setStorageError]=useState('');
  const [tab,setTab]=useState('today'), [modal,setModal]=useState(null), [notice,setNotice]=useState(''), [query,setQuery]=useState('');
  const [programFilter,setProgramFilter]=useState([]), [exerciseFilter,setExerciseFilter]=useState([]), [historyFilter,setHistoryFilter]=useState([]);
@@ -56,6 +59,13 @@ function FitnessApp(){
  const openProgram=(program=null)=>setModal({type:'program',id:program?.id,name:program?.name||'',exercises:program?.exercises.map(e=>({...e}))||[]});
  const begin=(program,date=null)=>{if(!program.exercises.length){setNotice('Bu programa önce hareket ekleyin.');return;}if(active){setTab('today');setNotice('Devam eden antrenmanı önce tamamlayın veya iptal edin.');return;}const timestamp=date?historicalDate(date):new Date().toISOString();if(!timestamp){setNotice('Bugün veya geçmiş bir tarih seçin.');return;}update(d=>({...d,active:{...startSession(program,d.exercises,timestamp),startedAt:date?null:timestamp,historical:!!date}}));setModal(null);setTab('today');};
  const changeSet=(ei,si,patch)=>update(d=>({...d,active:{...d.active,exercises:d.active.exercises.map((e,i)=>i!==ei?e:{...e,sets:e.sets.map((t,j)=>j===si?{...t,...patch}:t)})}}));
+ const addSet=index=>update(d=>d.active?{...d,active:{...d.active,exercises:d.active.exercises.map((e,i)=>i===index?addExtraSet(e):e)}}:d);
+ const applyAlternative=()=>{
+  const definition=data.exercises.find(e=>e.id===modal.item?.exerciseId);
+  if(!definition)return;
+  update(d=>({...d,active:replaceSessionExercise(d.active,modal.index,modal.item,definition)}));
+  setModal(null);
+ };
  const finish=()=>{if(!completedCount(active)){setNotice('En az bir set veya kardiyo kaydını tamamlayın.');return;}setModal({type:'finish'});};
  const saveFinished=()=>{const wasHistorical=active?.historical;update(d=>d.active?({...d,sessions:sortedSessions([{...d.active,finishedAt:new Date().toISOString()},...d.sessions]),active:null}):d);setModal(null);if(wasHistorical){setTab('history');setHistoryFilter([]);}setNotice('Antrenman kaydedildi. Emeğine sağlık!');};
  const openPastWorkout=()=>{if(active){setTab('today');setNotice('Önce devam eden antrenmanı tamamlayın veya iptal edin.');return;}setModal({type:'pastWorkout',date:localDateKey(),programId:null});};
@@ -69,15 +79,16 @@ function FitnessApp(){
  function History({id}){const entries=historyFor(data.sessions,id);const definition=data.exercises.find(e=>e.id===id);const cardio=definition?isCardio(definition):entries[0]?.exercise.kind==='cardio';return <View style={{gap:14}}><ExerciseChart sessions={data.sessions} exerciseId={id} metric={cardio?'duration':(definition?definition.bodyweight:entries[0]?.exercise.kind==='bodyweight')?'reps':'weight'}/>{!entries.length?<Empty title="İlk kaydınla başlar" text="Bu hareketin tamamlanan kayıtları burada görünür."/>:entries.map(entry=><View key={entry.id} style={s.card}><Text style={s.cardTitle}>{dateLabel(entry.date)}</Text><Text style={s.muted}>{entry.programName} · {sessionSummary({exercises:[entry.exercise]})}</Text><RecordDetails exercise={entry.exercise}/></View>)}</View>;}
  if(!ready)return <SafeAreaView style={s.safe}><View style={s.loading}>{storageError?<Text style={s.error}>{storageError}</Text>:<ActivityIndicator color="#d5fa68"/>}</View></SafeAreaView>;
  return <SafeAreaView style={s.safe}><StatusBar style="light"/><DropdownHost style={s.shell}>
- <View style={s.header}><View style={s.brandRow}><View style={s.logo}><Text style={s.logoText}>s.</Text></View><Text style={s.brand}>setlog<Text style={{color:'#d5fa68'}}>.</Text></Text></View><View style={s.offline}><View style={s.dot}/><Text style={s.offlineText}>KİŞİSEL ALANIN</Text></View></View>
+ <View style={[s.header,{paddingHorizontal:16}]}><View style={s.brandRow}><SectionMenu selected={section} onChange={setSection}/><View style={s.logo}><Text style={s.logoText}>s.</Text></View><Text style={s.brand}>setlog<Text style={{color:'#d5fa68'}}>.</Text></Text></View><View style={s.offline}><View style={s.dot}/><Text style={s.offlineText}>KİŞİSEL ALANIN</Text></View></View>
  {!!storageError&&<Text style={s.error}>{storageError}</Text>}
+ {section==='nutrition'?<Nutrition data={data.nutrition} onChange={fn=>update(d=>({...d,nutrition:fn(d.nutrition)}))}/>:<>
  <ScrollView key={tab} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
  {tab==='today'&&<>
  <Text style={s.todayDate}>{active?sessionDateLabel(active):dateLabel(new Date())}</Text>
  {active?.historical&&<Text style={s.accent}>GEÇMİŞ ANTRENMAN</Text>}<Text style={s.hero} numberOfLines={1} adjustsFontSizeToFit>{active?'Bir set daha.':'Kendine yatırım yap.'}</Text><Text style={s.subtitle}>{active?'Ritmini bul. Her tekrarı kaydet.':'Programını seç, antrenmana başla.'}</Text>
  {active?<>
  <View style={s.highlight}><View style={s.row}><Text style={s.cardTitle}>{active.programName}</Text><Text style={s.accent}>{completedCount(active)} / {totalSets}</Text></View><View style={s.track}><View style={[s.fill,{width:`${completedCount(active)/totalSets*100}%`}]}/></View><Text style={s.muted}>Tamamlanan giriş · İlerlemen otomatik kaydedilir</Text></View>
- {active.exercises.map((e,ei)=><SessionExercise key={e.exerciseId} exercise={e} index={ei} recent={recentHistory(active.historical?data.sessions.filter(session=>new Date(session.date)<new Date(active.date)):data.sessions,e.exerciseId)} onHistory={()=>history(e.exerciseId)} onChange={(si,patch)=>changeSet(ei,si,patch)} onError={setNotice}/>)}
+ {active.exercises.map((e,ei)=><SessionExercise key={e.exerciseId} exercise={e} index={ei} recent={recentHistory(active.historical?data.sessions.filter(session=>new Date(session.date)<new Date(active.date)):data.sessions,e.exerciseId)} onHistory={()=>history(e.exerciseId)} onAddSet={()=>addSet(ei)} onReplace={()=>setModal({type:'alternative',index:ei,item:null,search:''})} onChange={(si,patch)=>changeSet(ei,si,patch)} onError={setNotice}/>)}
  <Button title="Antrenmanı bitir →" onPress={finish}/><Button title="Antrenmanı iptal et" secondary onPress={()=>setModal({type:'cancel'})}/>
  </>:<>
  <View style={s.card}><Text style={s.label}>ANTRENMAN PROGRAMI</Text><ProgramSelect programs={data.programs} value={todayProgramId} onChange={setTodayProgramId} label="Bugünün programını seç"/><Button title="Antrenmana başla →" disabled={!todayProgram||!todayProgram.exercises.length} onDisabledPress={()=>setNotice('Başlamak için bir antrenman programı seçin.')} onPress={()=>begin(todayProgram)}/></View>
@@ -91,12 +102,23 @@ function FitnessApp(){
  <Text style={s.footer}>KÜÇÜK ADIMLAR. GÜÇLÜ YARINLAR.</Text>
  </ScrollView>
  <TabBar selected={tab} onChange={setTab}/>
+ </>}
  </DropdownHost>
- <Modal visible={!!modal} animationType="slide" onRequestClose={()=>setModal(null)}><SafeAreaView style={s.safe}><KeyboardAvoidingView style={s.shell} behavior={Platform.OS==='ios'?'padding':undefined}><DropdownHost style={{flex:1}}><View style={s.modalHeader}><Text style={s.sectionTitle}>{({exercise:'Hareket tanımla',program:'Program oluştur',history:'Hareket geçmişi',finish:'Antrenmanı tamamla',cancel:'Antrenmanı iptal et',deleteExercise:'Hareketi sil',deleteProgram:'Programı sil',clearHistory:'Antrenman kaydını sil',pastWorkout:'Geçmiş antrenman ekle'})[modal?.type]}</Text><Pressable accessibilityLabel="Kapat" onPress={()=>setModal(null)}><Text style={s.close}>×</Text></Pressable></View><ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+ <Modal visible={!!modal} animationType="slide" onRequestClose={()=>setModal(null)}><SafeAreaView style={s.safe}><KeyboardAvoidingView style={s.shell} behavior={Platform.OS==='ios'?'padding':undefined}><DropdownHost style={{flex:1}}><View style={s.modalHeader}><Text style={s.sectionTitle}>{({alternative:'Alternatif hareket seç',exercise:'Hareket tanımla',program:'Program oluştur',history:'Hareket geçmişi',finish:'Antrenmanı tamamla',cancel:'Antrenmanı iptal et',deleteExercise:'Hareketi sil',deleteProgram:'Programı sil',clearHistory:'Antrenman kaydını sil',pastWorkout:'Geçmiş antrenman ekle'})[modal?.type]}</Text><Pressable accessibilityLabel="Kapat" onPress={()=>setModal(null)}><Text style={s.close}>×</Text></Pressable></View><ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+ {modal?.type==='alternative'&&<>
+ <Text style={s.subtitle}>{active?.exercises[modal.index]?.name} yerine bu antrenmanda yapacağın hareketi seç.</Text>
+ <Field placeholder="Hareket ara…" value={modal.search} onChangeText={search=>setModal(current=>({...current,search}))}/>
+ {data.exercises.filter(e=>!active?.exercises.some(x=>x.exerciseId===e.id)&&e.name.toLocaleLowerCase('tr').includes(modal.search.toLocaleLowerCase('tr'))).map(e=><Pressable key={e.id} style={[s.pickRow,modal.item?.exerciseId===e.id&&{backgroundColor:'#29351f'}]} onPress={()=>setModal(current=>({...current,item:{exerciseId:e.id,sets:3,minutes:10}}))}><View style={{flex:1}}><Text style={s.cardTitle}>{e.name}</Text><Text style={s.muted}>{e.group}</Text></View><Text style={s.accent}>{modal.item?.exerciseId===e.id?'✓':'＋'}</Text></Pressable>)}
+ {!data.exercises.some(e=>!active?.exercises.some(x=>x.exerciseId===e.id)&&e.name.toLocaleLowerCase('tr').includes(modal.search.toLocaleLowerCase('tr')))&&<Text style={s.muted}>Uygun hareket bulunamadı. Alternatif hareketi Hareketler sekmesinden tanımlayabilirsin.</Text>}
+ {modal.item&&<View style={s.card}><Text style={s.cardTitle}>{data.exercises.find(e=>e.id===modal.item.exerciseId)?.name}</Text><ProgramItemControls item={modal.item} exercise={data.exercises.find(e=>e.id===modal.item.exerciseId)} onChange={item=>setModal(current=>({...current,item}))}/></View>}
+ {active?.exercises[modal.index]?.sets.some(set=>set.done||set.weight||set.reps||set.minutes)&&<Text style={s.subtitle}>Değiştirdiğinde eski hareket için bu antrenmanda girdiğin setler silinecek.</Text>}
+ <Button title="Bu antrenmanda kullan" disabled={!modal.item} onPress={applyAlternative}/>
+ <Button secondary title="Vazgeç" onPress={()=>setModal(null)}/>
+ </>}
  {modal?.type==='exercise'&&<><Text style={s.subtitle}>Hareketini bir kez ekle, her programda kullan.</Text><Field label="HAREKET ADI" placeholder="Örn. Incline Chest Press" value={modal.name} onChangeText={name=>setModal({...modal,name})}/><Text style={s.label}>KAS GRUBU</Text><ExerciseOptions value={modal} onChange={setModal}/><Button title="Hareketi kaydet" onPress={saveExercise}/>{modal.id&&<Button secondary title="Hareketi sil" onPress={()=>setModal({type:'deleteExercise',id:modal.id,name:modal.name})}/>}</>}
  {modal?.type==='program'&&<><Field label="PROGRAM ADI" placeholder="Push, Pull, Leg" value={modal.name} onChangeText={name=>setModal({...modal,name})}/><Text style={s.subtitle}>Hareketleri sırala; kardiyoda dakika, diğer hareketlerde set sayısını ayarla.</Text>{modal.exercises.map((item,i)=><View key={item.exerciseId} style={s.card}><View style={s.reorderHeader}><Text style={[s.cardTitle,{flex:1}]}>{i+1}. {data.exercises.find(e=>e.id===item.exerciseId)?.name}</Text><View style={s.reorderControls}>{[-1,1].map(direction=>{const disabled=direction===-1?i===0:i===modal.exercises.length-1;return <Pressable key={direction} accessibilityRole="button" accessibilityLabel={data.exercises.find(e=>e.id===item.exerciseId)?.name + (direction===-1?' yukarı taşı':' aşağı taşı')} accessibilityState={{disabled}} disabled={disabled} onPress={()=>moveExercise(i,direction)} style={({pressed})=>[s.reorderButton,{opacity:disabled ? 0.25 : pressed ? 0.65 : 1}]}><View style={[s.chevron,{transform:[{rotate:direction===-1?'45deg':'225deg'}]}]}/></Pressable>;})}</View></View><View style={s.row}><View style={{flex:1}}><ProgramItemControls item={item} exercise={data.exercises.find(e=>e.id===item.exerciseId)} onChange={next=>setModal(current=>({...current,exercises:current.exercises.map((e,j)=>i===j?next:e)}))}/></View><Pressable onPress={()=>setModal({...modal,exercises:modal.exercises.filter((_,j)=>i!==j)})}><Text style={s.muted}>Çıkar</Text></Pressable></View></View>)}<Text style={s.label}>HAREKET EKLE</Text>{data.exercises.filter(e=>!modal.exercises.some(x=>x.exerciseId===e.id)).map(e=><Pressable key={e.id} style={s.pickRow} onPress={()=>setModal({...modal,exercises:[...modal.exercises,{exerciseId:e.id,sets:3,...(isCardio(e)?{minutes:10}:{})}]})}><View style={{flex:1}}><Text style={s.cardTitle}>{e.name}</Text><Text style={s.muted}>{e.group}</Text></View><Text style={s.accent}>＋</Text></Pressable>)}{!data.exercises.length&&<Text style={s.subtitle}>Önce Hareketler sekmesinden hareket eklemelisin.</Text>}<Button title="Programı kaydet" onPress={saveProgram}/>{modal.id&&<Button secondary title="Programı sil" onPress={()=>setModal({type:'deleteProgram',id:modal.id,name:modal.name})}/>}</>}
  {modal?.type==='history'&&<><Text style={s.hero}>{data.exercises.find(e=>e.id===modal.id)?.name||historyFor(data.sessions,modal.id)[0]?.exercise.name||active?.exercises.find(e=>e.exerciseId===modal.id)?.name||'Hareket'}</Text><Text style={s.subtitle}>Tüm programlar · En yeniden en eskiye</Text><History id={modal.id}/></>}
- {(modal?.type==='deleteExercise'||modal?.type==='deleteProgram')&&<><Text style={s.cardTitle}>{modal.name}</Text><Text style={s.subtitle}>{modal.type==='deleteExercise'?'Bu hareket kütüphaneden ve tüm programlardan kaldırılacak. Boş kalan programlara yeniden hareket ekleyebilirsin.':'Bu program program listesinden kaldırılacak.'} Önceki kayıtların ve devam eden antrenmanın korunur.</Text><Button secondary title="Vazgeç" onPress={()=>setModal(null)}/><Button title={modal.type==='deleteExercise'?'Hareketi sil':'Programı sil'} onPress={confirmDelete}/></>}
+ {(modal?.type==='deleteExercise'||modal?.type==='deleteProgram')&&<><Text style={s.cardTitle}>{modal.name}</Text><Text style={s.subtitle}>{modal.type==='deleteExercise'?'Bu hareket kütüphaneden ve tüm programlardan kaldırılacak. Boş kalan programlara yeniden hareket ekleyebilirsin.':'Bu program program listesinden kaldırılacak.'} Önceki kayıtların ve devam eden antrenmanın korunur.</Text>{modal.type==='deleteProgram'&&<Button secondary title="Vazgeç" onPress={()=>setModal(null)}/>}<Button title={modal.type==='deleteExercise'?'Hareketi sil':'Programı sil'} onPress={confirmDelete}/>{modal.type==='deleteExercise'&&<Button secondary title="Vazgeç" onPress={()=>setModal(null)}/>}</>}
  {modal?.type==='clearHistory'&&<><Text style={s.cardTitle}>Emin misin?</Text><Text style={s.subtitle}>“{modal.name}” programının {dateLabel(modal.date)} tarihli bu antrenman kaydı ve içindeki set, kilo ve tekrar bilgileri silinecek. Aynı programın diğer kayıtları korunacak.</Text><Button title="Evet, bu kaydı sil" onPress={clearHistory}/><Button secondary title="Vazgeç" onPress={()=>setModal(null)}/></>}
  {modal?.type==='pastWorkout'&&<>
  <Text style={s.subtitle}>Tarihi ve programı seç, önizlemeyi kontrol edip antrenman bilgilerini gir.</Text>

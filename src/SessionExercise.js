@@ -1,17 +1,20 @@
 import React from 'react';
+import IconButton from './IconButton';
 import {View,Text,Pressable,TextInput,StyleSheet} from 'react-native';
 import {validSet} from './model';
-import {recordLines,setLabel,validMinutes} from './training';
+import {extraSetStatus,recordLines,setLabel,validMinutes} from './training';
 import {dateLabel} from './format';
-export default function SessionExercise({exercise:e,index,recent,onHistory,onChange,onError}){
+export default function SessionExercise({exercise:e,index,recent,onHistory,onReplace,onAddSet,onChange,onError}){
  const cardio=e.kind==='cardio';
- return <View style={s.card}><View style={s.heading}><View style={{flex:1}}><Text style={s.label}>HAREKET {index+1}</Text><Text style={s.title}>{e.name}</Text></View><Pressable onPress={onHistory}><Text style={s.accent}>Geçmiş ↗</Text></Pressable></View>
+ const extra=extraSetStatus(e);
+ return <View style={s.card}><View style={s.heading}><View style={{flex:1}}><Text style={s.label}>HAREKET {index+1}</Text><Text style={s.title}>{e.name}</Text></View><View style={{flexDirection:'row',gap:8}}><IconButton icon="calendar" label={e.name+' geçmişi'} hint="Hareket geçmişini göster" onPress={onHistory}/><IconButton icon="swap" label={e.name+' yerine alternatif hareket seç'} hint="Bu antrenmanda hareketi değiştir" onPress={onReplace}/></View></View>
   {recent.length>0&&<><Text style={s.label}>SON 3 ANTRENMAN · TÜM PROGRAMLAR</Text>{recent.map(entry=><View key={entry.id} style={s.previous}><Text style={s.muted}>{dateLabel(entry.date)} · {entry.programName}</Text><RecordDetails exercise={entry.exercise}/></View>)}</>}
   {cardio?<Text style={s.accent}>Hedef: {e.targetMinutes} dk · Gerçekleşen süreyi gir</Text>:<Text style={s.muted}>{e.dropCount?`${e.workSets} work-set · Her birinde ${e.dropCount} drop-set`:e.kind==='bodyweight'?'Her set için tekrar sayısını gir.':'Her set için kilo ve tekrar gir.'}</Text>}
   {e.sets.map((set,i)=><View key={i} style={s.entry}>{set.workSet&&set.dropSet===1&&<Text style={s.workTitle}>{set.workSet}. WORK-SET</Text>}<Text style={s.label}>{cardio?'SÜRE (DK)':setLabel(set,i)}</Text><View style={s.row}>
    {cardio?<TextInput accessibilityLabel={e.name+' süre dakika'} keyboardType="decimal-pad" placeholder="Dakika" placeholderTextColor="#667064" style={[s.input,set.done&&s.done]} value={set.minutes} editable={!set.done} onChangeText={minutes=>onChange(i,{minutes})}/>:<>{e.kind==='bodyweight'?<Text style={[s.muted,{flex:1,textAlign:'center'}]}>Vücut ağırlığı</Text>:<TextInput accessibilityLabel={e.name+' '+setLabel(set,i)+' kilo'} keyboardType="decimal-pad" placeholder="Kg" placeholderTextColor="#667064" style={[s.input,set.done&&s.done]} value={set.weight} editable={!set.done} onChangeText={weight=>onChange(i,{weight})}/>}<TextInput accessibilityLabel={e.name+' '+setLabel(set,i)+' tekrar'} keyboardType="number-pad" placeholder="Tekrar" placeholderTextColor="#667064" style={[s.input,set.done&&s.done]} value={set.reps} editable={!set.done} onChangeText={reps=>onChange(i,{reps})}/></>}
    <Pressable accessibilityRole="checkbox" accessibilityLabel={(cardio?'Kardiyo':setLabel(set,i))+' tamamla'} accessibilityState={{checked:set.done}} style={[s.check,set.done&&s.checked]} onPress={()=>{if(!set.done&&!(cardio?validMinutes(set.minutes):validSet(set,e.kind))){onError(cardio?'Sıfırdan büyük bir dakika değeri girin.':e.kind==='bodyweight'?'Pozitif tam sayı tekrar girin.':'Geçerli kilo ve pozitif tam sayı tekrar girin.');return;}onChange(i,{done:!set.done});}}><Text style={{color:set.done?'#15200c':'#7b8578',fontSize:22}}>{set.done?'✓':'○'}</Text></Pressable>
   </View></View>)}
+ {!cardio&&<Pressable accessibilityRole="button" accessibilityState={{disabled:!extra.available}} disabled={!extra.available} onPress={onAddSet} style={{padding:12,borderRadius:10,backgroundColor:'#2c3526',opacity:extra.available?1:.45}}><Text style={[s.accent,{textAlign:'center'}]}>{e.dropCount?'Ekstra work-set ekle':'Ekstra set ekle'} + · {extra.added}/{extra.base}</Text></Pressable>}
  </View>;
 }
 export function RecordDetails({exercise}){return <View style={{gap:8}}>{recordLines(exercise).map((line,i)=><Text key={i} style={s.muted}>{line}</Text>)}</View>;}

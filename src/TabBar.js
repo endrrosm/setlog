@@ -1,19 +1,20 @@
 import React from 'react';
 import {View, Text, Pressable, StyleSheet} from 'react-native';
 
-const tabs=[['today','Bugün'],['programs','Programlar'],['exercises','Hareketler'],['history','Geçmiş']];
+const defaultTabs=[['today','Bugün'],['programs','Programlar'],['exercises','Hareketler'],['history','Geçmiş']];
 
-function TabIcon({name,color}) {
+export function TabIcon({name,color}) {
   const stroke={borderColor:color};
   return <View accessible={false} style={styles.icon}>
     {name==='today'&&<><View style={[styles.todayRing,stroke]}/><View style={[styles.todayCenter,{backgroundColor:color}]}/></>}
-    {name==='programs'&&<><View style={[styles.plan,stroke]}/>{[8,13,18].map(top=><View key={top} style={[styles.planLine,{top,backgroundColor:color}]}/>)}</>}
+    {(name==='programs'||name==='meals')&&<><View style={[styles.plan,stroke]}/>{[8,13,18].map(top=><View key={top} style={[styles.planLine,{top,backgroundColor:color}]}/>)}</>}
+    {name==='foods'&&<><View style={[styles.plate,stroke]}/><View style={[styles.plateInner,stroke]}/></>}
     {name==='exercises'&&<View style={styles.dumbbell}><View style={[styles.bar,{backgroundColor:color}]}/>{[3,17].map(left=><View key={left} style={[styles.weight,stroke,{left}]}/>)}</View>}
     {name==='history'&&<><View style={[styles.calendar,stroke]}/><View style={[styles.calendarRule,{backgroundColor:color}]}/>{[8,17].map(left=><View key={left} style={[styles.calendarRing,{left,backgroundColor:color}]}/>)}{[8,13,18].map(left=><View key={left} style={[styles.calendarDot,{left,backgroundColor:color}]}/>)}</>}
   </View>;
 }
 
-export default function TabBar({selected,onChange}) {
+export default function TabBar({selected,onChange,tabs=defaultTabs}) {
   return <View style={styles.container}><View style={styles.barSurface}>
     {tabs.map(([key,label])=>{
       const active=selected===key;
@@ -35,6 +36,8 @@ const styles=StyleSheet.create({
   label:{color:'#93a18a',fontSize:11,lineHeight:16,fontWeight:'600',textAlign:'center',includeFontPadding:false},
   activeLabel:{color:'#d5fa68'},
   icon:{width:26,height:26},
+  plate:{position:'absolute',left:2,top:2,width:22,height:22,borderWidth:2,borderRadius:11},
+  plateInner:{position:'absolute',left:7,top:7,width:12,height:12,borderWidth:2,borderRadius:6},
   todayRing:{position:'absolute',left:2,top:2,width:22,height:22,borderWidth:2,borderRadius:11},
   todayCenter:{position:'absolute',left:9,top:9,width:8,height:8,borderRadius:4},
   plan:{position:'absolute',left:4,top:2,width:18,height:23,borderWidth:2,borderRadius:4},

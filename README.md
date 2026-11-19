@@ -1,76 +1,303 @@
-# Setlog
+<div align="center">
+  <img src="assets/icons/icon.png" alt="Setlog uygulama simgesi" width="104" />
+  <h1>Setlog</h1>
+  <p><strong>Antrenmanını kaydet. Beslenmeni takip et. Gelişimini gör.</strong></p>
+  <p>Türkçe arayüz · Koyu tema · Cihazda veri saklama · Android / iOS / Web</p>
+  <p><a href="#hızlı-başlangıç">Hızlı başlangıç</a> · <a href="#kullanım">Kullanım</a> · <a href="#geliştirme-ve-test">Geliştirme</a></p>
+</div>
 
-Türkçe, koyu temalı Android/iOS fitness günlüğü. Expo / React Native ile geliştirilmiştir; web önizlemesi de bulunur.
+---
 
-## Çalıştırma
+Setlog, antrenman programlarını ve günlük beslenme kayıtlarını tek uygulamada tutmak için geliştirilmiş bir Expo / React Native projesidir. Ağırlık, vücut ağırlığı, dropset ve kardiyo çalışmalarını destekler; yemek ve öğün kayıtlarından kalori ile makro besin toplamlarını hesaplar.
 
-Node.js 20.19+ gereklidir.
+Hesap açma veya sunucu kurulumu gerektirmez. Kayıtlar kullanılan cihazda saklanır; ilk açılışta örnek antrenman ya da beslenme verisi bulunmaz.
+
+## İçindekiler
+
+- [Özellikler](#özellikler)
+- [Teknoloji](#teknoloji)
+- [Hızlı başlangıç](#hızlı-başlangıç)
+- [Komutlar](#komutlar)
+- [Kullanım](#kullanım)
+- [Veri saklama ve kayıt davranışı](#veri-saklama-ve-kayıt-davranışı)
+- [Proje yapısı](#proje-yapısı)
+- [Geliştirme ve test](#geliştirme-ve-test)
+- [Derleme ve dağıtım](#derleme-ve-dağıtım)
+- [Sorun giderme](#sorun-giderme)
+- [Kapsam ve lisans](#kapsam-ve-lisans)
+
+## Özellikler
+
+### Spor
+
+- **Hareket kütüphanesi:** Hareket oluşturma, düzenleme, silme, Türkçe uyumlu arama ve çoklu kas grubu filtresi.
+- **Program yönetimi:** Hareketleri sıralama, set veya süre belirleme ve açılır program önizlemesi.
+- **Dört kayıt biçimi:** Ağırlık ve tekrar, yalnızca tekrar, work-set / drop-set ve kardiyo süresi.
+- **Antrenman sırasında esneklik:** Ek set ekleme ve o antrenmana özel alternatif hareket seçme.
+- **Kaldığın yerden devam:** Devam eden antrenmanın girişlerini otomatik saklama.
+- **Geçmiş ve gelişim:** Programa göre filtreleme, geçmiş tarihli antrenman girişi ve hareket bazlı grafikler.
+- **Aktivite takibi:** Kaydırılabilir yedi günlük takvim, görünen aralıktaki antrenman sayısı ve güncel seri.
+
+### Beslenme
+
+- **Yemek kütüphanesi:** Referans gram miktarı, kalori, karbonhidrat, protein ve yağ değerleri tanımlama.
+- **Kayıtlı öğünler:** Birlikte tüketilen yemekleri gram miktarlarıyla yeniden kullanılabilir öğünlerde birleştirme.
+- **Günlük takip:** Kahvaltı, öğle yemeği, akşam yemeği ve ara öğünler için tüketim kaydı.
+- **Otomatik hesaplama:** Tüketilen miktara göre öğün ve gün toplamlarını hesaplama.
+- **Geçmiş kayıtlar:** Tarih seçerek önceki günlere öğün ekleme; tüketim miktarlarını düzenleme ve kaldırma.
+
+## Teknoloji
+
+Aşağıdaki sürümler projenin `package.json` dosyasındaki tanımlardır; kesin bağımlılık ağacı `package-lock.json` ile tutulur.
+
+| Katman | Teknoloji / sürüm |
+| --- | --- |
+| Uygulama altyapısı | Expo `~58.0.25` |
+| Arayüz | React `19.3.0`, React Native `0.88.1` |
+| Web | React DOM `19.3.0`, React Native Web `^0.21.0` |
+| Yerel depolama | AsyncStorage `2.2.0` |
+| Güvenli ekran alanı | React Native Safe Area Context `~5.11.1` |
+| Test | Node.js yerleşik test çalıştırıcısı (`node:test`) |
+| Mobil derleme yapılandırması | EAS CLI `^27.2.0`, `eas.json` |
+
+Uygulama JavaScript ile yazılmıştır. Arayüz React Native bileşenlerinden, iş kuralları ise ayrı JavaScript modüllerinden oluşur.
+
+## Hızlı başlangıç
+
+### Gereksinimler
+
+- **Node.js 22.13+ (22.x) veya 24.3+ (24.x).** Kurulu React Native ve Metro paketlerinin Node.js koşulu: `^22.13.0 || ^24.3.0 || >=26.0.0`. Bu dokümantasyon güncellemesinde testler Node.js `24.18.0` ile çalıştırıldı.
+- Node.js ile birlikte gelen **npm**.
+- Mobil önizleme için SDK ile uyumlu **Expo Go**, Android emülatörü veya iOS simülatörü.
+- Yerel iOS simülatörü için **macOS ve Xcode**; Android emülatörü için yapılandırılmış **Android Studio / Android SDK**.
+
+### Kurulum
+
+Depoyu bilgisayarınıza aldıktan sonra proje kökünde çalıştırın:
 
 ```sh
-npm install
+npm ci
 npm start
 ```
 
-Terminaldeki QR kodunu uyumlu Expo Go ile açın. Proje Expo SDK 54'e sabitlenmiştir; Expo Go sürümü bu SDK'yı desteklemelidir. Android emülatörü için `npm run android`, macOS üzerinde iOS simülatörü için `npm run ios`, tarayıcı önizlemesi için `npm run web` kullanılır. Fiziksel cihaz ve bilgisayar aynı ağda olmalıdır.
+`npm ci`, kilit dosyasındaki sürümleri kurar. Uygulamanın mevcut akışları için `.env`, API anahtarı veya veritabanı kurulumu gerekmez.
 
-```sh
-npm test
-npm run build:web
-```
+Metro açıldıktan sonra:
+
+- **Fiziksel cihaz:** QR kodunu proje SDK’sını destekleyen Expo Go ile açın. Yerel ağ bağlantısında cihaz ve bilgisayar aynı ağda olmalıdır.
+- **Android:** Hazır bir emülatörle `npm run android` çalıştırın.
+- **iOS:** macOS üzerinde `npm run ios` çalıştırın.
+- **Web:** `npm run web` çalıştırıp terminaldeki adresi açın.
+
+> Expo Go sürümünün projenin Expo SDK sürümüyle uyumlu olması gerekir. Web önizlemesi, fiziksel cihazdaki davranışın doğrulandığı anlamına gelmez.
+
+## Komutlar
+
+| Komut | Açıklama |
+| --- | --- |
+| `npm ci` | Kilit dosyasına göre bağımlılıkları kurar. |
+| `npm start` | Expo geliştirme sunucusunu başlatır. |
+| `npm run android` | Geliştirme sunucusunu başlatıp Android hedefini açar. |
+| `npm run ios` | Geliştirme sunucusunu başlatıp iOS hedefini açar. |
+| `npm run web` | Web geliştirme önizlemesini açar. |
+| `npm test` | `tests/*.test.js` dosyalarını çalıştırır. |
+| `npm run build:web` | Web dağıtım çıktısını `dist/` dizinine üretir. |
+| `npx expo start --clear` | Metro önbelleğini temizleyerek geliştirme sunucusunu başlatır. |
+
+`android` ve `ios` komutları mağazaya yüklenebilir APK / AAB / IPA üretmez.
 
 ## Kullanım
 
-1. **Hareketler → Yeni hareket:** ad ve kas grubu belirleyin.
-2. **Programlar → Yeni program / Düzenle:** hareketleri seçin, her birine 1–30 set atayın. Hareket kutusunun sağ üstündeki gövdesiz yukarı/aşağı oklarla sırasını değiştirin. İlk harekette yukarı, son harekette aşağı düğmesi devre dışıdır. Yeni sıra **Programı kaydet** ile saklanır ve sonraki antrenmanlarda kullanılır.
-3. **Bugün:** programı seçerek antrenmana başlayın.
-4. Her sette kilo ve tekrar girip onay kutusuna dokunun. Vücut ağırlığı hareketlerinde kilo için `0`, kesirli kiloda `27,5` veya `27.5` girilebilir. Onayı kaldırarak seti düzenleyebilirsiniz.
-5. Hareket kartındaki **Geçmiş** tüm programlardaki tarih/set/kilo/tekrar kayıtlarını açar. Her hareketin son 3 antrenman kaydı (tarih, program, set, kilo ve tekrar) doğrudan kartta görünür. Üçten az kayıt varsa mevcut kayıtlar gösterilir.
-6. **Antrenmanı bitir → Antrenmanı kaydet:** tamamlanan setler geçmişe eklenir. Eksik setler tamamlanmış sayılmaz.
-7. **Hareketler → Geçmişi gör:** antrenman dışında da hareketin tüm programlardaki geçmişine ulaşabilirsiniz.
-   Hareket geçmişinin üstündeki çizgi grafik, son 7 antrenmanın tamamlanan setlerdeki en yüksek kilosunu eskiden yeniye gösterir. Y ekseni ağırlıklara göre dinamik ölçeklenir. X ekseninde tarihler 75 derece eğimli gösterilir. Yeşil çizgi en yüksek, gri çizgi en düşük tamamlanmış set kilosudur; ölçek ikisini de kapsar. Noktalara dokunarak tam tarih, program ve yalnızca en yüksek kilo görülebilir. Yediden az kayıt varsa mevcut kayıtlar gösterilir; aynı gün yapılan ayrı antrenmanlar ayrı noktadır.
-8. **Programlar / Hareketler → Düzenle → Sil:** onay vererek programı veya hareketi silebilirsiniz. Hareket silinince tüm programlardan çıkarılır; boş kalan programlara yeniden hareket eklenebilir. Eski kayıtlar ve devam eden antrenman korunur. Silinen hareketin geçmişi **Geçmiş** sekmesindeki eski antrenmanlardan açılabilir.
+Sol üstteki bölüm menüsünden **Spor** ve **Beslenme** arasında geçiş yapabilirsiniz. Her bölümün kendi alt sekmeleri vardır.
 
-## Veri ve kapsam
+### 1. Hareketlerini ve programını oluştur
 
-- **Hareket ekleme:** kas grupları eşit boyutlu 4 sütun × 2 satırdır. “Dropset olarak ayarla” seçilirse her work-set için 2–30 drop-set seçilir. Kardiyo hareketleri dakika ile kaydedildiği için dropset seçeneği kardiyoda kapalıdır.
-- **Program oluşturma:** isim örneği “Push, Pull, Leg”. Kardiyoda 1–300 dakika hedefi, diğer hareketlerde 1–30 set/work-set belirlenir. Dropset hareketlerinde her work-set'in drop-setleri ayrı listelenir; isteğe bağlı hedef kilo/tekrar girilebilir.
-- **Antrenman:** kardiyoda gerçekleşen dakika, normal sette kilo/tekrar, dropsette her drop-set için ayrı kilo/tekrar girilir ve ayrı tamamlanır. Program hedefleri antrenmanda değiştirilebilir. Örneğin 3 work-set × 2 drop-set, 6 bağımsız kilo/tekrar kaydıdır.
-- **Geçmiş ve grafik:** kardiyo son 7 antrenmanın gerçekleşen süresini dakika üzerinden gösterir. Ağırlık hareketleri en yüksek/en düşük kilo çizgilerini korur. Eski kayıtlar yeniden yorumlanmaz; kilo/tekrar olarak girilmiş eski kardiyo kayıtlarından süre türetilmez. Antrenman türü, work-set/drop-set numaraları ve süre hedefi kayıt anında sabitlenir.
+1. **Spor → Hareketler → Yeni hareket** yolundan hareketin adını ve kas grubunu girin.
+2. İhtiyaca göre vücut ağırlığı veya dropset seçeneğini kullanın. Kardiyo hareketlerinde bu seçenekler kullanılmaz.
+3. **Programlar → Yeni program** ekranında programa ad verin ve hareketleri ekleyin.
+4. Her hareket için set / work-set sayısını veya kardiyo süresini belirleyin.
+5. Yukarı / aşağı oklarla hareket sırasını düzenleyip programı kaydedin.
 
-- **Geçmiş:** programa göre çoklu filtreleme yapılır. Silinmiş programların geçmiş kayıtları da filtrelenebilir. **Temizle ×** tüm kayıtları yeniden gösterir.
-- Filtrelerde seçim tik yerine arka plan rengiyle gösterilir; seçim ve temizleme panel boyutunu değiştirmez.
-- Geçmiş kayıtları kapalı başlar; başlıkta gün adı içeren tarih, program adı ve tamamlanan set yüzdesi gösterilir. Kartın geneline dokunarak set detayları açılıp kapatılabilir; büyük ok ilerleme çubuğunun yanındadır. Sil ve hareket geçmişi bağlantıları kendi işlemlerini yapar. Yüzde, kaydın kendi planlanmış set sayısından hesaplanır.
-- Programlar sekmesindeki kartlarda kas grupları ve toplam set sayısının altında program önizlemesi bulunur: hareketler antrenman sırasıyla ve set sayılarıyla listelenir.
-- Bugün ekranında önce program açılır menüsü ve başlatma düğmesi, ardından takvim ve son antrenman görünür. Program seçilmemişken başlatma düğmesi gri görünür; dokunulunca yalnızca program seçme uyarısı gösterir. Seçim yapılınca seçilen programla antrenman başlar. Aynı davranış geçmiş kayıt girişinde de geçerlidir.
-- Bugün ve geçmiş kayıt ekleme menüleri, seçim kutusuyla aynı ekran katmanında kutunun 6 px altına açılır. Seçim kutusunun kopyası oluşturulmaz; kutu sabit kalır ve içerik aşağı itilmez. Menü dışına dokunmak seçim değiştirmeden kapatır. Seçili programın yazı boyutu sabittir; seçim yumuşak yeşil arka planla vurgulanır.
-- Takvim başlangıçta bugün dahil son 7 günü gösterir ve birer gün kaydırılır. Örneğin 27 Ekim–2 Kasım aralığından iki gün geri kayınca 25–31 Ekim görünür. Antrenman yapılan günlerde 🔥 gösterilir. Görünen 7 gündeki toplam antrenman sayısı ve güncel seri yan yanadır. Seri bugün veya dün biten ardışık antrenman günleridir; aynı gündeki birden fazla antrenman tek seri günü sayılır. Oklar bir gün kaydırır; Bugüne dön başlangıç aralığını açar.
-- Kas grupları: Göğüs, Omuz, Triceps, Sırt, Biceps, Bacak, Karın, Kardiyo. Bu sekiz seçenek hareket tanımlamada ve filtrelerde ortaktır. Eski “Diğer” kayıtları korunur; düzenlerken mevcut gruplardan biri seçilmelidir.
-- Takvim parmak hareketini izleyen yatay animasyonla kayar; oklar da bir günlük kaydırma animasyonu yapar. Geçiş tamamlandığında tarih aralığı ve toplam tek güncellemeyle değişir. Eski aralığı yeniden yazan yerel kaydırma olayları kullanılmaz.
-- Sekme değiştirildiğinde yeni sayfa en üstten açılır. Kayıt silme onayında “Evet, bu kaydı sil” üstte, “Vazgeç” alttadır; karttaki Sil yazısının boyutu sabit kalırken dokunma alanı genişletilmiştir.
-- Program önizlemeleri kapalı başlar; önizleme başlığına dokunarak hareket ve set listesini açıp kapatabilirsiniz.
-- Geçmiş kaydının sağ üstündeki küçük **Sil** yazısı yalnızca o antrenman kaydını siler. Tarih ve program adıyla **Emin misin?** onayı istenir; aynı programın diğer kayıtları korunur. Son kaydı silinen program geçmiş filtresinden çıkar.
-- **Geçmiş antrenman ekle:** takvimden bugün veya geçmiş bir tarih seçilir. Tarihin altındaki tek açılır menüden program seçilir. Altındaki önizlemede tarih, program, hareketler ve set sayıları görünür. En alttaki **Geçmiş antrenman kaydı gir** düğmesi normal set/kilo/tekrar giriş ekranını açar; program seçilmeden düğme pasiftir. Seçilen tarih yarım kalan kayıtla birlikte saklanır. Tamamlanınca geçmişe dönülür; listeler tarihe göre sıralanır. Devam eden bir antrenman varsa önce tamamlanmalı veya iptal edilmelidir.
-- **Hareketler:** kas grubuna göre çoklu filtreleme yapılır. Arama alanına girildiğinde veya yazıldığında grup filtresi temizlenir; aramadaki **×** metnin tamamını siler. Kas grubu seçmek de mevcut aramayı temizler.
-- **Programlar:** program isimlerinin altında içerdikleri kas grupları listelenir. Çoklu kas grubu filtresi **VEYA** mantığıyla çalışır: Göğüs ve Omuz seçildiğinde bunlardan en az birini içeren programlar gösterilir. Seçimler kaldırılınca tüm programlar görünür.
+Kas grupları: **Göğüs, Omuz, Triceps, Sırt, Biceps, Bacak, Karın, Kardiyo**.
 
-- Başlangıçta gerçek olmayan antrenman verisi bulunmaz.
-- Hareketler, programlar, antrenman geçmişi ve devam eden antrenman cihazda AsyncStorage içinde saklanır.
-- Aktif antrenman uygulama yeniden açıldığında devam eder.
-- Program/hareket isim değişiklikleri eski antrenmanların o günkü adlarını değiştirmez. Geçmiş, kalıcı hareket kimliğiyle birleştirilir.
-- Kayıt hatası görünür şekilde bildirilir. Okuma hatasında eski verinin üzerine yazılmaz.
-- Hesap, sunucu, cihazlar arası senkronizasyon ve bulut yedeği bu sürüme dahil değildir. Uygulamayı kaldırmak veya tarayıcı verilerini temizlemek yerel kayıtları silebilir.
-- App Store / Google Play yayını ve imzalı APK/IPA üretimi yapılmamıştır.
+| Hareket türü | Program ayarı | Antrenman girişi |
+| --- | --- | --- |
+| Ağırlık | 1–30 set | Her set için kilo ve tekrar |
+| Vücut ağırlığı | 1–30 set | Her set için yalnızca tekrar |
+| Dropset | 1–30 work-set; her work-set için 2–30 drop-set | Her drop-set için ayrı giriş ve tamamlanma |
+| Kardiyo | 1–300 dakika hedefi | Gerçekleşen süre, dakika olarak |
 
-## Dosyalar
+Dropset, vücut ağırlığı hareketleriyle de kullanılabilir. Örneğin **3 work-set × 2 drop-set**, ayrı ayrı tamamlanabilen **6 giriş** oluşturur.
 
-- `App.js`: mobil arayüz, program/hareket düzenleme, antrenman ve geçmiş akışları.
-- `src/model.js`: antrenman snapshot'ı, set doğrulama ve hareket bazlı geçmiş.
-- `tests/model.test.js`: kayıt bağımsızlığı, veri doğrulama, programlar arası geçmiş testleri.
+### 2. Antrenmanını kaydet
 
-## Doğrulama
+1. **Bugün** ekranında program seçip **Antrenmana başla** düğmesine dokunun.
+2. Setlerin değerlerini girin ve tamamladığınız girişleri işaretleyin.
+3. Bir seti değiştirmek için tamamlanma işaretini kaldırın.
+4. **Antrenmanı bitir → Antrenmanı kaydet** ile kaydı geçmişe ekleyin.
 
-- `npm test`: 29 test; karma kardiyo/dropset programı, bağımsız drop-set hedefleri, süre doğrulama, kayıt/yeniden yükleme/geçmiş/grafik akışı ve eski kayıt uyumluluğu dahil.
-- `expo export --platform all`: Android ve iOS Hermes paketleri ile web çıktısı üretildi. Bu işlem imzalı APK/IPA üretmez.
-- Expo'nun yerel bağımlılık haritasıyla sürüm uyumluluk kontrolü geçti.
-- Ortamdaki tarayıcı kontrol aracı başlatılamadığı için görsel/uçtan uca arayüz testi yapılamadı. Fiziksel cihaz üzerinde klavye, kalıcı kayıt ve uygulamayı kapatıp devam etme akışı ayrıca doğrulanmalıdır.
-- Bağımlılık denetimi: uyumlu düzeltmeler denendi; son kurulumda 37 uyarı (2 yüksek, 34 orta, 1 düşük) devam ediyor. Yüksek uyarılar `image-size` ve `postcss` paketlerinde. Mağaza/üretim yayını öncesi SDK yükseltmesi ve bağımlılık incelemesi gereklidir; kırıcı `--force` düzeltmesi uygulanmadı. React ve React Native sürümleri, uyumsuz ikinci kopyaları önlemek için overrides ile sabitlendi.
+Kilo girişinde `27,5` ve `27.5` biçimleri desteklenir; `0` kg geçerlidir. Tekrar pozitif tam sayı, kardiyo süresi sıfırdan büyük bir sayı olmalıdır. Kaydetmek için en az bir set veya kardiyo girişi tamamlanmalıdır; eksik girişler tamamlanmış sayılmaz.
+
+**Antrenmana özel değişiklikler:** Kardiyo dışındaki hareketlere başlangıç set sayısı kadar ek set eklenebilir. Dropsette her ek work-set, kendi drop-setlerini birlikte ekler. Alternatif hareket seçimi yalnızca aktif antrenmanı değiştirir; değiştirilen hareketin o antrenmandaki girişleri yerine yeni, boş girişler oluşturulur. Sonraki antrenman kayıtlı programı kullanır.
+
+### 3. Geçmişini ve gelişimini incele
+
+- Hareket kartındaki **Geçmiş** veya **Hareketler → Geçmişi gör**, aynı hareketin farklı programlardaki kayıtlarını bir araya getirir.
+- Antrenman ekranında hareketin en son **3** tamamlanmış antrenman kaydı görünür.
+- Grafik, uygun türdeki son **7** antrenmanı eskiden yeniye gösterir. Ağırlık hareketlerinde kilo, vücut ağırlığı hareketlerinde tekrar, kardiyoda toplam dakika kullanılır. Ağırlık ve tekrar grafiklerinde tamamlanan setlerin en yüksek / en düşük değerleri gösterilir.
+- Aynı gün yapılan ayrı antrenmanlar ayrı grafik noktalarıdır. Grafik ölçeği verilere göre değişir.
+- **Geçmiş** sekmesinde birden fazla program seçerek filtreleme yapılabilir. Silinmiş programların kayıtları da filtrelenebilir.
+- **Geçmiş antrenman ekle** ile bugün veya önceki bir tarih için kayıt girilebilir. Önce aktif antrenmanı tamamlamak ya da iptal etmek gerekir.
+- Geçmiş kartındaki **Sil**, onayın ardından yalnızca ilgili antrenmanı kaldırır.
+
+Takvim başlangıçta bugün dahil son yedi günü gösterir; oklar veya yatay kaydırma ile birer gün ilerler. Güncel seri, bugün ya da dün biten ardışık antrenman günlerinden oluşur. Aynı gündeki birden fazla antrenman seride tek gün sayılır.
+
+Program ve hareket filtreleri çoklu seçimi destekler. Programlarda seçilen kas grupları **VEYA** mantığıyla eşleşir. Hareket araması ve kas grubu filtresi birbirini temizler.
+
+### 4. Yemeklerini ve öğünlerini tanımla
+
+1. **Beslenme → Yemekler → Yemek ekle** ekranını açın.
+2. Yemek adı, referans gram miktarı ve bu miktara ait kalori / karbonhidrat / protein / yağ değerlerini girin.
+3. **Kayıtlı öğünler → Öğün oluştur** ile sık tükettiğiniz yemekleri miktarlarıyla bir araya getirin.
+4. **Bugün** ekranından öğün vaktini seçip **Öğün kaydet** ile yemek veya kayıtlı öğün ekleyin.
+5. Tükettiğiniz gram miktarlarını düzenleyip kaydedin; öğün ve gün toplamları otomatik hesaplanır.
+
+Hesaplama her besin değeri için şu oranı kullanır:
+
+```text
+Tüketilen değer = Tanımlı besin değeri × Tüketilen gram / Referans gram
+```
+
+Örneğin 100 gramında 200 kcal bulunan bir yemeğin 150 gramı, kayda 300 kcal ekler. Aynı yemek birden fazla kez seçildiğinde gram miktarları birleştirilir.
+
+Beslenme geçmişinden tarih seçebilir, geçmişe öğün kaydedebilir ve bir öğündeki toplam tüketim miktarlarını değiştirebilirsiniz. Gelecek tarihli kayıt kabul edilmez.
+
+## Veri saklama ve kayıt davranışı
+
+Tüm uygulama verileri AsyncStorage içinde **`setlog:v1`** anahtarında JSON olarak saklanır.
+
+| Alan | İçerik |
+| --- | --- |
+| `version` | Veri şeması sürümü; mevcut değer `1` |
+| `exercises` | Hareket tanımları |
+| `programs` | Programlar ve hareket planları |
+| `sessions` | Kaydedilmiş antrenmanlar |
+| `active` | Devam eden antrenman veya `null` |
+| `nutrition` | Kullanıldığında yemekler (`foods`), öğün şablonları (`meals`) ve tüketimler (`entries`) |
+
+### Antrenman kayıtları
+
+Antrenman başlatılırken program ve hareket bilgileri bağımsız bir kopyaya alınır. Sonradan program veya hareket adını değiştirmek eski antrenman adlarını değiştirmez. Hareket geçmişi kalıcı hareket kimliği üzerinden birleştirilir.
+
+Hareket silindiğinde programlardan da çıkarılır; eski antrenmanlar ve aktif antrenman korunur. Program silmek de geçmiş antrenmanları silmez. Eski kilo / tekrar kayıtları kardiyo süresi olarak yeniden yorumlanmaz.
+
+### Beslenme kayıtları
+
+Yemek silmek, yemek kütüphanesindeki tanımı ve kayıtlı öğünlerdeki bağlantılarını kaldırır; tüketim geçmişindeki kopyalar korunur. Kayıtlı öğün silmek yemekleri veya tüketim geçmişini silmez.
+
+**Yemek tanımını düzenlemek, aynı yemeğin geçmiş tüketim kayıtlarındaki adını ve besin değerlerini de günceller.** Tüketilmiş gram miktarları korunur; geçmiş kalori ve makro toplamları yeni değerlere göre değişir.
+
+### Kalıcılık sınırları
+
+- Değişiklikler sıraya alınarak otomatik kaydedilir; kaydedilmiş aktif antrenman yeniden açılışta devam eder.
+- Okuma hatasında mevcut verinin üzerine yazılması engellenir; yazma hatası arayüzde bildirilir.
+- Hesap, sunucu, bulut yedeği, cihazlar arası senkronizasyon ve uygulama içi veri içe / dışa aktarma bulunmaz.
+- Uygulamayı kaldırmak veya tarayıcı site verilerini temizlemek kayıtları silebilir. Farklı cihaz ve tarayıcıların kayıtları birbirinden bağımsızdır.
+
+## Proje yapısı
+
+```text
+fitApp/
+├── App.js                     # Ana arayüz, spor akışları ve kalıcı durum yönetimi
+├── index.js                   # Expo giriş noktası
+├── app.json                   # Uygulama kimliği, tema ve simge ayarları
+├── eas.json                   # EAS derleme ve gönderim profilleri
+├── assets/icons/              # Uygulama ve platform simgeleri
+├── src/
+│   ├── model.js               # Antrenman modeli, doğrulama ve geçmiş
+│   ├── training.js            # Hareket türleri, ek set ve alternatif hareket
+│   ├── nutritionModel.js      # Besin hesaplama, tüketim ve öğün işlemleri
+│   ├── nutritionCalendar.js   # Beslenme takvimi gün seçimi
+│   ├── activity.js            # Haftalık aktivite ve seri hesaplama
+│   ├── history.js             # Tarih, sıralama ve geçmiş silme işlemleri
+│   ├── chart.js               # Grafik verileri ve ölçek hesaplama
+│   ├── filters.js             # Program, hareket ve geçmiş filtreleri
+│   ├── format.js              # Türkçe tarih ve ilerleme biçimlendirme
+│   ├── amountStepper.js       # Miktar artırma / azaltma davranışı
+│   ├── NutritionScreen.js     # Beslenme ekranları
+│   ├── SessionExercise.js     # Antrenman hareketleri ve kayıt detayları
+│   ├── ExerciseChart.js       # Hareket gelişim grafiği
+│   ├── TrainingControls.js    # Hareket ve program seçenekleri
+│   └── …                      # Takvim, gezinme, seçim ve giriş bileşenleri
+├── tests/                     # İş kuralları için Node.js testleri
+├── package.json               # Bağımlılıklar ve komutlar
+└── package-lock.json          # Kilitli bağımlılık ağacı
+```
+
+## Geliştirme ve test
+
+İş kuralları `src/` altındaki arayüzden bağımsız modüllerde tutulur. Bir davranışı değiştirirken ilgili model ve test dosyasını birlikte inceleyin; özellikle kayıt kopyalarının bağımsızlığını, eski veri uyumluluğunu ve yerel tarih hesaplarını koruyun.
+
+```sh
+npm test
+```
+
+Testler antrenman kopyaları, giriş doğrulama, kardiyo / dropset / vücut ağırlığı, alternatif hareket, ek set sınırları, grafikler, filtreler, takvim ve seri, beslenme hesapları ve tüketim düzenlemelerini kapsar.
+
+**Son doğrulama — 20 Kasım 2026:** Node.js `24.18.0` ile **43 test başarılı, 0 başarısız**. Bu testler fiziksel cihaz, görsel arayüz veya uçtan uca testlerin yerine geçmez. Bu README güncellemesi sırasında web / mobil derleme yeniden çalıştırılmadı.
+
+Arayüz değişikliklerinde web önizlemesinin yanında cihazda klavye davranışını, ekran sınırlarını, uygulamayı kapatıp devam etmeyi ve kalıcı kayıtları kontrol edin. `package.json` içinde ayrı lint veya tür kontrolü komutu tanımlı değildir.
+
+## Derleme ve dağıtım
+
+### Web çıktısı
+
+```sh
+npm run build:web
+```
+
+Bu komut `dist/` altında web çıktısı üretir. Çıktı üretmek siteyi otomatik yayımlamaz.
+
+### EAS profilleri
+
+Depoda şu profiller tanımlıdır:
+
+| Profil | Yapılandırma |
+| --- | --- |
+| `development` | Geliştirme istemcisi ve dahili dağıtım |
+| `preview` | Dahili dağıtım; Android için APK |
+| `production` | Otomatik sürüm artırımıyla üretim derlemesi |
+
+Expo hesabı, proje erişimi ve gerekli imzalama ayarları hazır olduğunda örnek komutlar:
+
+```sh
+npx eas build --platform android --profile preview
+npx eas build --platform android --profile production
+npx eas build --platform ios --profile production
+```
+
+`app.json` mevcut bir EAS proje kimliği ile Android / iOS için `com.setlog.fitness` uygulama kimliğini içerir. Kendi hesabınız altında dağıtırken proje bağlantısını ve uygulama kimliklerini kendi projenize göre yapılandırın.
+
+`development` profili tanımlı olsa da `expo-dev-client` mevcut bağımlılıklarda yoktur; bu profil kullanılmadan önce geliştirme istemcisi kurulumu tamamlanmalıdır. EAS derlemesi mağaza yayını yapmaz; gönderim ve mağaza işlemleri ayrıdır. Depodaki yapılandırma tek başına başarılı bir mobil derleme veya mağaza yayını kanıtı değildir.
+
+Capacitor paketleri bağımlılıklarda yer alır; depoda Capacitor yapılandırması veya yerel platform projesi bulunmadığından burada tanımlanan derleme akışı Expo / EAS üzerinden ilerler.
+
+## Sorun giderme
+
+| Durum | Kontrol / çözüm |
+| --- | --- |
+| Node.js sürüm uyumsuzluğu | `node --version` ile sürümü kontrol edin; yukarıdaki desteklenen sürümlerden birini kullanın. |
+| Expo Go projeyi açmıyor | İstemcinin projenin Expo SDK sürümünü desteklediğini ve ağ bağlantısını kontrol edin. |
+| Eski paket / arayüz çıktısı görünüyor | Sunucuyu durdurup `npx expo start --clear` çalıştırın. |
+| Bağımlılıklar kurulamıyor | Proje kökünde `npm ci` çalıştırın; Node.js sürümünü ve npm hata çıktısını inceleyin. |
+| Antrenman başlamıyor | Program seçildiğinden, programda hareket bulunduğundan ve başka aktif antrenman olmadığından emin olun. |
+| Set tamamlanamıyor | Hareket türüne uygun kilo, pozitif tam sayı tekrar veya pozitif süre girin. |
+| Kayıtlar okunamıyor | Uygulamayı kapatıp yeniden açın; veriyi korumak için depolamayı temizlemeyin. |
+| Değişiklikler kaydedilemiyor | Depolama alanını kontrol edin; hata sürerken uygulamayı kapatmayın. |
+| Başka cihazda kayıtlar görünmüyor | Kayıtlar yereldir; cihazlar arasında otomatik aktarım yoktur. |
+
+## Kapsam ve lisans
+
+Bu sürüm kişisel antrenman ve beslenme kaydı üzerine kuruludur. Besin değerleri kullanıcı tarafından girilir; hazır besin veritabanı, barkod tarama, sağlık platformu entegrasyonu veya otomatik antrenman / diyet önerisi bulunmaz.
+
+Depoda bir `LICENSE` dosyası veya `package.json` içinde lisans tanımı bulunmuyor. Kullanım ve yeniden dağıtım koşulları için proje sahibinden bilgi alın; paket `private: true` olarak işaretlidir.

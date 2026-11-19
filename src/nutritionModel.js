@@ -17,6 +17,12 @@ function validFood(food){return !!food.name.trim()&&validAmount(food.baseGrams)&
 function totals(items){return items.reduce((sum,item)=>{for(const key of nutrients)sum[key]+=number(item.food[key])*number(item.grams)/number(item.food.baseGrams);return sum;},{kcal:0,carbs:0,protein:0,fat:0});}
 function snapshot(items,foods){return items.map(item=>{const food=foods.find(f=>f.id===item.foodId);if(!food||!validAmount(item.grams))throw Error('Geçerli bir yemek ve gram miktarı seçin.');return {food:{...food},grams:number(item.grams)};});}
 function removeFood(data,id){return {...data,foods:data.foods.filter(f=>f.id!==id),meals:data.meals.map(m=>({...m,items:m.items.filter(i=>i.foodId!==id)}))};}
+function saveFood(data,food){
+ return {...data,
+  foods:data.foods.some(item=>item.id===food.id)?data.foods.map(item=>item.id===food.id?{...food}:item):[...data.foods,{...food}],
+  entries:data.entries.map(entry=>entry.items.some(item=>item.food.id===food.id)?{...entry,items:entry.items.map(item=>item.food.id===food.id?{...item,food:{...food}}:item)}:entry),
+ };
+}
 function groupedConsumption(entries){
  const groups=new Map();
  for(const entry of entries)for(const item of entry.items){
@@ -43,4 +49,4 @@ function updateConsumption(data,date,slot,items){
   return updated.length?[{...entry,items:updated}]:[];
  })};
 }
-module.exports={emptyNutrition,nutrients,number,validAmount,validFood,totals,snapshot,removeFood,mergeItems,groupedConsumption,updateConsumption};
+module.exports={emptyNutrition,nutrients,number,validAmount,validFood,totals,snapshot,removeFood,saveFood,mergeItems,groupedConsumption,updateConsumption};

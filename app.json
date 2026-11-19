@@ -3,6 +3,7 @@
     "name": "Setlog",
     "slug": "setlog",
     "version": "1.0.0",
+    "icon": "./assets/icons/icon.png",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "ios": {
@@ -10,11 +11,17 @@
       "bundleIdentifier": "com.setlog.fitness"
     },
     "android": {
-      "package": "com.setlog.fitness"
+      "package": "com.setlog.fitness",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icons/adaptive-foreground.png",
+        "monochromeImage": "./assets/icons/adaptive-monochrome.png",
+        "backgroundColor": "#d5fa68"
+      }
     },
     "web": {
       "name": "Setlog",
-      "themeColor": "#111411"
+      "themeColor": "#111411",
+      "favicon": "./assets/icons/favicon.png"
     },
     "extra": {
       "eas": {

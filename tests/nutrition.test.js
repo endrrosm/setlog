@@ -1,7 +1,31 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {validFood,validAmount,totals,snapshot,removeFood,mergeItems,groupedConsumption,updateConsumption}=require('../src/nutritionModel');
+const {validFood,validAmount,totals,snapshot,removeFood,saveFood,mergeItems,groupedConsumption,updateConsumption}=require('../src/nutritionModel');
 const food={id:'a',name:'Yulaf',baseGrams:100,kcal:380,carbs:60,protein:14,fat:7};
+test('saving food updates saved meals and all consumption dates while preserving gram amounts',()=>{
+ const other={...food,id:'b',name:'Başka yemek'};
+ const data={foods:[food,other],meals:[{id:'m',items:[{foodId:'a',grams:50}]}],entries:[
+  {id:'past',date:'2026-11-18',slot:'breakfast',items:[{food:{...food},grams:50},{food:other,grams:20}]},
+  {id:'today',date:'2026-11-20',slot:'dinner',items:[{food:{...food},grams:100}]},
+  {id:'other',date:'2026-11-20',slot:'lunch',items:[{food:other,grams:10}]}
+ ]};
+ const updated={...food,name:'Yeni ad',baseGrams:200,kcal:400,carbs:80,protein:20,fat:10};
+ const next=saveFood(data,updated);
+ const expected={kcal:100,carbs:20,protein:5,fat:2.5};
+ assert.deepEqual(totals(snapshot(next.meals[0].items,next.foods)),expected);
+ assert.deepEqual(totals([next.entries[0].items[0]]),expected);
+ assert.equal(next.entries[0].items[0].grams,50);
+ assert.equal(next.entries[1].items[0].grams,100);
+ assert.equal(next.entries[1].items[0].food.name,'Yeni ad');
+ assert.equal(next.entries[2],data.entries[2]);
+ assert.equal(next.entries[0].items[1],data.entries[0].items[1]);
+ assert.equal(next.meals,data.meals);
+ assert.equal(data.entries[0].items[0].food.kcal,380);
+ const restored=JSON.parse(JSON.stringify(next));
+ assert.deepEqual(totals([restored.entries[0].items[0]]),expected);
+ assert.deepEqual(totals([removeFood(next,'a').entries[0].items[0]]),expected);
+ assert.equal(saveFood(next,{...food,id:'new'}).foods.length,3);
+});
 test('consumption groups repeated foods and editing scales saved snapshots without changing other meals',()=>{
  const day='2026-11-18';
  const entries=[
@@ -46,7 +70,7 @@ test('nutrition validates quantities and permits zero nutrients',()=>{
  for(const patch of [{name:' '},{baseGrams:0},{kcal:-1},{fat:''},{protein:'abc'}])assert.equal(validFood({...food,...patch}),false);
  assert.equal(validFood({...food,fat:0,baseGrams:'12,5'}),true);
 });
-test('consumption snapshots survive food edits and deletion; templates lose deleted references',()=>{
+test('snapshots are independent objects and survive deletion; templates lose deleted references',()=>{
  const definition={...food};
  const items=snapshot([{foodId:'a',grams:'75'}],[definition]);
  definition.kcal=1;
